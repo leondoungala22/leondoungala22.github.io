@@ -3296,6 +3296,61 @@ copyright {
 /* Enhanced carousel transitions */
 .carousel-item {
   transition: transform 0.8s ease;
+}
+
+/* Remove opacity transitions and visibility changes that cause blackout */
+.carousel-item:not(.active) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.carousel-item.active {
+  position: relative;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Optimize carousel performance */
+.carousel-inner {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* Modify the opacity behavior for non-active slides */
+.carousel-item:not(.active) {
+  opacity: 0;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+.carousel-item.active {
+  opacity: 1;
+  position: relative;
+  pointer-events: auto;
+  z-index: 1;
+}
+
+/* Optimize images in carousel for better performance */
+.carousel-item img {
+  will-change: transform;
+  transition: transform 0.5s ease-out;
+  backface-visibility: hidden;
+  transform-style: preserve-3d; /* Better 3D rendering */
+}
+
+/* Improved carousel transitions */
+.carousel-item {
+  transition: transform 0.8s ease;
   /* Remove opacity transition that causes blackout */
 }
 
