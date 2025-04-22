@@ -111,58 +111,95 @@ document.addEventListener('DOMContentLoaded', function() {
     progressBar.className = 'carousel-progress';
     carousel.appendChild(progressBar);
     
-    // Get carousel instance with much slower timing
+    // Get carousel instance with optimized settings for smooth transitions
     const bsCarousel = new bootstrap.Carousel(carousel, {
       interval: 4000, // 4 seconds per slide
       pause: 'hover',  // Pause on hover
       wrap: true,      // Loop continuously 
-      keyboard: true   // Enable keyboard navigation
+      keyboard: true,  // Enable keyboard navigation
+      ride: 'carousel' // Auto-start
     });
     
-    // Update progress bar on slide event
-    carousel.addEventListener('slide.bs.carousel', function() {
+    // Fix transition blackout by managing slide events better
+    carousel.addEventListener('slide.bs.carousel', function(event) {
       // Reset progress
       progressBar.style.width = '0%';
+      
+      // Get current and next slide
+      const currentSlide = carousel.querySelector('.carousel-item.active');
+      const nextSlide = event.relatedTarget;
+      
+      // Ensure next slide is visible before transition starts
+      if (nextSlide) {
+        nextSlide.style.display = 'block';
+        nextSlide.style.position = 'absolute';
+        nextSlide.style.top = '0';
+        nextSlide.style.left = '0';
+        nextSlide.style.width = '100%';
+        
+        // Small delay to ensure the browser renders the slide
+        setTimeout(() => {
+          // Now we can safely start the transition
+          currentSlide.style.transition = 'transform 0.8s ease';
+          nextSlide.style.transition = 'transform 0.8s ease';
+        }, 10);
+      }
     });
     
     // Start progress animation
     carousel.addEventListener('slid.bs.carousel', function() {
+      // Once slide is complete, fix positions and start progress
+      const slides = carousel.querySelectorAll('.carousel-item');
+      slides.forEach(slide => {
+        if (slide.classList.contains('active')) {
+          slide.style.position = 'relative';
+          slide.style.display = 'block';
+        } else {
+          slide.style.position = 'absolute';
+          slide.style.display = 'block';
+          slide.style.opacity = '0';
+        }
+      });
+      
+      // Restart progress bar animation
       progressBar.style.width = '100%';
       progressBar.style.transition = 'width 12s linear'; // Match the interval
     });
     
     // Initialize progress bar for first slide
     progressBar.style.width = '100%';
-    progressBar.style.transition = 'width 12s linear'; // Match the interval
+    progressBar.style.transition = 'width 12s linear';
     
-    // Pause carousel on hover
+    // Pause carousel on hover but maintain visual state
     carousel.addEventListener('mouseenter', function() {
       bsCarousel.pause();
       progressBar.style.transition = 'none';
     });
     
-    // Resume carousel on mouse leave
+    // Resume carousel on mouse leave with smooth restart
     carousel.addEventListener('mouseleave', function() {
-      bsCarousel.cycle();
       progressBar.style.width = '0%';
+      
+      // Small delay before restarting to prevent visual glitches
       setTimeout(() => {
+        bsCarousel.cycle();
         progressBar.style.width = '100%';
-        progressBar.style.transition = 'width 12s linear'; // Match the interval
+        progressBar.style.transition = 'width 12s linear';
       }, 50);
     });
     
-    // Optional: Add touch swipe support for mobile
+    // Enhanced touch support for mobile
     let touchStartX = 0;
     let touchEndX = 0;
     
     carousel.addEventListener('touchstart', function(e) {
       touchStartX = e.changedTouches[0].screenX;
-    }, false);
+    }, { passive: true });
     
     carousel.addEventListener('touchend', function(e) {
       touchEndX = e.changedTouches[0].screenX;
       handleSwipe();
-    }, false);
+    }, { passive: true });
     
     function handleSwipe() {
       if (touchEndX < touchStartX - 50) {
